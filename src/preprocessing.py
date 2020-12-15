@@ -55,9 +55,23 @@ def reclassify_series_samples(df_db):
 
 
 def split_series_byID(n_ids, train_perc, joint_df):
+    '''
+        INPUT:
+            n_ids: total number of IDs (in this project: 100)
+            train_perc: percentage data of train set
+            joint_df: joint pandas dataframe
+
+        OUTPUT:
+            df_train: pandas dataframe (train dataframe)
+            df_test: pandas dataframe (test dataframe)
+
+        DESCRIPTION:
+            It chooses floor(train_perc * n_ids) indexes to train set, and the rest for test set,
+            returning splitted dataframes.
+    '''
     # Sampling test indices
     n_train = math.floor(train_perc * n_ids)
-    train_indices = np.random.choice(np.arange(len_indices), size=n_train, replace=False)
+    train_indices = np.random.choice(np.arange(n_ids), size=n_train, replace=False)
 
     # Selecting train/test examples
     bool_list = []
