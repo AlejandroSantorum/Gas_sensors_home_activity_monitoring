@@ -92,6 +92,31 @@ def split_series_byID(n_ids, train_perc, joint_df):
 
 
 
+def remove_excess_bg(df_db, delta=0.5):
+    '''
+        INPUT:
+            df_db: pandas dataframe
+            delta: real number. It determines what samples we want to 
+                   keep before and after stimulus
+        
+        OUTPUT:
+            pandas dataframe
+        
+        DESCRIPTION:
+            It deletes excess background examples, returning modified dataframe.
+    '''
+    # condition 1 selectes all samples from stimulus beginning minus delta to the end
+    cond1 = df_db['time'] > df_db['t0'] - delta
+    # condition 2 selectes all samples from beginning to stimulus end plus delta
+    cond2 = df_db['time'] < df_db['t0']+df_db['dt']+delta
+    # so we want to keep the samples that intersects both conditions
+    final_cond = cond1 & cond2
+    return df_db.loc[final_cond]
+
+
+
+
+
 if __name__ == '__main__':
     df_db = group_datafiles_byID('../datasets/raw/HT_Sensor_metadata.dat', '../datasets/raw/HT_Sensor_dataset.dat')
     print('=== Head before reclassify ===')
@@ -101,9 +126,14 @@ if __name__ == '__main__':
     df_db = reclassify_series_samples(df_db)
     print(df_db.head())
 
+    df_db = remove_excess_bg(df_db)
+    print(df_db.shape)
+
+    '''
     store_filepath = '../datasets/preprocessed/joint_reclass.pkl'
     df_db.to_pickle(store_filepath)
 
     print('=== Head after writing and reading df ===')
     df_db = pd.read_pickle(store_filepath)
     print(df_db.head())
+    '''
