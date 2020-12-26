@@ -20,7 +20,7 @@ def plot_series(features_names, id, dataframe, axes, ox, oy, stim_start, stim_en
 
     # Plotting features
     for feat_name in features_names:
-        axes[ox,oy].plot(dataframe.time[dataframe.id==id], dataframe[feat_name][dataframe.id==id], linewidth = '2.0')
+        axes[ox,oy].plot(dataframe.time[dataframe.id==id], dataframe[feat_name][dataframe.id==id], linewidth = '2.0', label=feat_name)
     
     # Plotting start and end of stimulus
     axes[ox,oy].plot([stim_start, stim_start], [min_val, max_val])
@@ -56,6 +56,9 @@ def plot_allSeries_byID(id, dataframe, wrong_bool=None):
 
     stim_start = dataframe.t0[dataframe.id==id].values[0]
     stim_end = dataframe.t0[dataframe.id==id].values[0] + dataframe.dt[dataframe.id==id].values[0]
+    if 't0_delay' in dataframe:
+        stim_start += dataframe['t0_delay'][dataframe.id==id].values[0]
+        stim_end += dataframe['t0_delay'][dataframe.id==id].values[0]
 
     plot_series(['Humidity'], id, dataframe, axes, 0, 0, stim_start, stim_end, wrong_bool)
     plot_series(['Temp.'], id, dataframe, axes, 0, 1, stim_start, stim_end, wrong_bool)
@@ -63,7 +66,6 @@ def plot_allSeries_byID(id, dataframe, wrong_bool=None):
     plot_series(['R3', 'R4'], id, dataframe, axes, 1, 1, stim_start, stim_end, wrong_bool)
     plot_series(['R5', 'R6'], id, dataframe, axes, 2, 0, stim_start, stim_end, wrong_bool)
     plot_series(['R7', 'R8'], id, dataframe, axes, 2, 1, stim_start, stim_end, wrong_bool)
-
 
     stims = sorted(list(set(dataframe['class'][dataframe['id'] == id])))
     stim = stims[-1]

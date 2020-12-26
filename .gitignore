@@ -1,5 +1,5 @@
 .ipynb_checkpoints
 *.DS_Store
 __pycache__/
-datasets/raw
+*.dat
 my_tests.ipynb

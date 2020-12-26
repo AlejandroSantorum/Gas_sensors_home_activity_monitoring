@@ -47,8 +47,12 @@ def reclassify_series_samples(df_db):
         DESCRIPTION:
             It reclassifies as 'background' readings of series before stimulus and after stimulus.
     '''
-    df_db.loc[df_db['time']<df_db['t0'], 'class'] = 'background'
-    df_db.loc[df_db['time']>(df_db['t0']+df_db['dt']), 'class'] = 'background'
+    if 't0_delay' in df_db:
+        df_db.loc[df_db['time']<(df_db['t0']+df_db['t0_delay']), 'class'] = 'background'
+        df_db.loc[df_db['time']>(df_db['t0']+df_db['dt']+df_db['t0_delay']), 'class'] = 'background'
+    else:
+        df_db.loc[df_db['time']<df_db['t0'], 'class'] = 'background'
+        df_db.loc[df_db['time']>(df_db['t0']+df_db['dt']), 'class'] = 'background'
 
     return df_db
 
