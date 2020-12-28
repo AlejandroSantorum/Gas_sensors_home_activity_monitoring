@@ -47,9 +47,9 @@ def reclassify_series_samples(df_db):
         DESCRIPTION:
             It reclassifies as 'background' readings of series before stimulus and after stimulus.
     '''
-    if 't0_delay' in df_db:
+    if 't0_delay' in df_db and 'dt_delay' in df_db:
         df_db.loc[df_db['time']<(df_db['t0']+df_db['t0_delay']), 'class'] = 'background'
-        df_db.loc[df_db['time']>(df_db['t0']+df_db['dt']+df_db['t0_delay']), 'class'] = 'background'
+        df_db.loc[df_db['time']>(df_db['t0']+df_db['dt']+df_db['dt_delay']), 'class'] = 'background'
     else:
         df_db.loc[df_db['time']<df_db['t0'], 'class'] = 'background'
         df_db.loc[df_db['time']>(df_db['t0']+df_db['dt']), 'class'] = 'background'
@@ -109,12 +109,22 @@ def remove_excess_bg(df_db, delta=0.5):
         DESCRIPTION:
             It deletes excess background examples, returning modified dataframe.
     '''
-    # condition 1 selectes all samples from stimulus beginning minus delta to the end
-    cond1 = df_db['time'] > df_db['t0'] - delta
-    # condition 2 selectes all samples from beginning to stimulus end plus delta
-    cond2 = df_db['time'] < df_db['t0']+df_db['dt']+delta
+    # Taking into account stimulus beginning/ending delay
+    if 't0_delay' in df_db and 'dt_delay' in df_db:
+        # condition 1 selectes all samples from stimulus beginning minus delta to the end
+        cond1 = df_db['time'] > df_db['t0']+df_db['t0_delay']-delta
+        # condition 2 selectes all samples from beginning to stimulus end plus delta
+        cond2 = df_db['time'] < df_db['t0']+df_db['dt']+df_db['dt_delay']+delta
+
+    else: 
+        # condition 1 selectes all samples from stimulus beginning minus delta to the end
+        cond1 = df_db['time'] > df_db['t0']-delta
+        # condition 2 selectes all samples from beginning to stimulus end plus delta
+        cond2 = df_db['time'] < df_db['t0']+df_db['dt']+delta
+    
     # so we want to keep the samples that intersects both conditions
     final_cond = cond1 & cond2
+
     return df_db.loc[final_cond]
 
 

@@ -56,9 +56,9 @@ def plot_allSeries_byID(id, dataframe, wrong_bool=None):
 
     stim_start = dataframe.t0[dataframe.id==id].values[0]
     stim_end = dataframe.t0[dataframe.id==id].values[0] + dataframe.dt[dataframe.id==id].values[0]
-    if 't0_delay' in dataframe:
+    if 't0_delay' in dataframe and 'dt_delay' in dataframe:
         stim_start += dataframe['t0_delay'][dataframe.id==id].values[0]
-        stim_end += dataframe['t0_delay'][dataframe.id==id].values[0]
+        stim_end += dataframe['dt_delay'][dataframe.id==id].values[0]
 
     plot_series(['Humidity'], id, dataframe, axes, 0, 0, stim_start, stim_end, wrong_bool)
     plot_series(['Temp.'], id, dataframe, axes, 0, 1, stim_start, stim_end, wrong_bool)
