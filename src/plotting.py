@@ -4,8 +4,29 @@ import matplotlib.pyplot as plt
 
 
 
-def plot_series(features_names, id, dataframe, axes, ox, oy, stim_start, stim_end, wrong_bool=None):
-
+def _plot_series(features_names, id, dataframe, axes, ox, oy, stim_start, stim_end, wrong_bool=None):
+    '''
+        INPUT:
+            features_names: names of features to include in OY axis
+            id: serie identifier
+            dataframe: pandas dataframe
+            axes: matplotlib.pyplot subplot axis
+            ox: X axis identifier
+            oy: Y axis identifier
+            stim_start: moment when stimulus starts
+            stim_end: moment when stimulus ends
+            wrong_bool: Optional. Array of booleans where the i-th entry represents if the i-th
+                        sample of specified serie has been misclassified. The length of array
+                        'wrong_bool' must match the number of samples of specified serie.
+        
+        OUTPUT:
+            None
+        
+        DESCRIPTION:
+            It plots data of the given serie (ID required). In the X axis it's included time and in
+            Y axis is represented the data of the specified features. It can also plot misclassified examples.
+            This function mainly works as an auxiliary function.
+    '''
     # Calculating minimum value
     min_val = dataframe[features_names[0]][dataframe.id==id].values[0]
     for feat_name in features_names:
@@ -46,6 +67,19 @@ def plot_series(features_names, id, dataframe, axes, ox, oy, stim_start, stim_en
 
 
 def plot_allSeries_byID(id, dataframe, wrong_bool=None):
+    '''
+        INPUT:
+            id: serie ID
+            dataframe: pandas dataframe
+            wrong_bool: Optional. Array of booleans where the i-th entry represents if the i-th
+                        sample of specified serie has been misclassified. The length of array
+                        'wrong_bool' must match the number of samples of specified serie.
+        
+        OUTPUT:
+            None
+        
+        DESCRIPTION: It plots all series (all sensors, humidity and temp.) with given ID.
+    '''
     # nrows values is set according to the project
     nrows = 3
 
@@ -60,12 +94,12 @@ def plot_allSeries_byID(id, dataframe, wrong_bool=None):
         stim_start += dataframe['t0_delay'][dataframe.id==id].values[0]
         stim_end += dataframe['dt_delay'][dataframe.id==id].values[0]
 
-    plot_series(['Humidity'], id, dataframe, axes, 0, 0, stim_start, stim_end, wrong_bool)
-    plot_series(['Temp.'], id, dataframe, axes, 0, 1, stim_start, stim_end, wrong_bool)
-    plot_series(['R1', 'R2'], id, dataframe, axes, 1, 0, stim_start, stim_end, wrong_bool)
-    plot_series(['R3', 'R4'], id, dataframe, axes, 1, 1, stim_start, stim_end, wrong_bool)
-    plot_series(['R5', 'R6'], id, dataframe, axes, 2, 0, stim_start, stim_end, wrong_bool)
-    plot_series(['R7', 'R8'], id, dataframe, axes, 2, 1, stim_start, stim_end, wrong_bool)
+    _plot_series(['Humidity'], id, dataframe, axes, 0, 0, stim_start, stim_end, wrong_bool)
+    _plot_series(['Temp.'], id, dataframe, axes, 0, 1, stim_start, stim_end, wrong_bool)
+    _plot_series(['R1', 'R2'], id, dataframe, axes, 1, 0, stim_start, stim_end, wrong_bool)
+    _plot_series(['R3', 'R4'], id, dataframe, axes, 1, 1, stim_start, stim_end, wrong_bool)
+    _plot_series(['R5', 'R6'], id, dataframe, axes, 2, 0, stim_start, stim_end, wrong_bool)
+    _plot_series(['R7', 'R8'], id, dataframe, axes, 2, 1, stim_start, stim_end, wrong_bool)
 
     stims = sorted(list(set(dataframe['class'][dataframe['id'] == id])))
     stim = stims[-1]
@@ -75,6 +109,22 @@ def plot_allSeries_byID(id, dataframe, wrong_bool=None):
 
 
 def plot_misclassified_byID(df_test, id, y_true, y_pred):
+    '''
+        INPUT:
+            df_test: pandas dataframe. It is considered to be test dataframe,
+                     but it can be the whole dataframe too, due to the fact
+                     that series are selected by ID.
+            id: serie identifier
+            y_true: real class values
+            y_pred: predicted class values
+
+        OUTPUT:
+            None
+        
+        DESCRIPTION:
+            Given a serie ID on test set, it calculates the samples misclassified
+            and plots the whole series, remarking misclassified examples.
+    '''
     unique_ids = list(set(df_test.id))
 
     # Checking introduced ID is in test set
