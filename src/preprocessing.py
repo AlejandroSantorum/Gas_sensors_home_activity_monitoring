@@ -130,6 +130,75 @@ def remove_excess_bg(df_db, delta=0.5):
 
 
 
+def _build_headers():
+    return ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'Temp.', 'Humidity', 'class',
+            'R1_mean', 'R1_std', 'R2_mean', 'R2_std', 'R3_mean', 'R3_std', 'R4_mean', 'R4_std',
+            'R5_mean', 'R5_std', 'R6_mean', 'R6_std', 'R7_mean', 'R7_std', 'R8_mean', 'R8_std',
+            'Temp._mean', 'Temp._std', 'Humidity_mean', 'Humidity_std']
+
+
+def _init_stats_dict():
+    return {'R1': [], 'R2': [], 'R3': [], 'R4': [], 'R5': [], 'R6': [],
+            'R7': [], 'R8': [], 'Temp.': [], 'Humidity': []}
+
+
+
+def window_df(df, window_size=120, step=1):
+    if window_size <= 0:
+        raise ValueError('Introduced window size is too small: '+str(window_size))
+    if window_size > 5000:
+        raise ValueError('Introduced window size is too large: '+str(window_size))
+
+    features = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'Temp.', 'Humidity', 'class']
+    headers = _build_headers()
+    new_df = np.asarray(headers)
+
+    total_ids = max(list(set(df['id'])))+1 # Take into account 0 ID
+    for id in range(total_ids):
+        # for the project, ID=95 is invalid
+        if id != 95:
+            # selecting sub-dataframe with corresponding ID
+            dfid = df[df['id']==id]
+            # init window pointer (selects window starts)
+            window_ptr = 0
+
+            while window_ptr+window_size < dfid.shape[0]:
+                # init means and std devs dict
+                means_dict = _init_stats_dict()
+                std_dict = _init_stats_dict()
+
+                # Looping throw window
+                for sample_ptr in range(window_size):
+                    current_sample = window_ptr+sample_ptr
+
+                    for sensor in means_dict:
+                        # selecting value
+                        val = dfid[sensor].iloc[current_sample]
+                        # new value to mean dict (for each sensor)
+                        means_dict[sensor].append(val)
+                        # new value to std dev dict (for each sensor)
+                        std_dict[sensor].append(val)
+                
+                # selecting current sample sensor values
+                new_data = dfid[features].iloc[window_ptr+window_size].to_numpy()
+                # adding statistics values
+                for sensor in means_dict:
+                    np.append(new_data, np.mean(means_dict[sensor]))
+                    np.append(new_data, np.std(std_dict[sensor]))
+                
+                # appending new data to numpy matrix
+                new_df = np.vstack((new_df, new_data))
+
+                # window moved by the value specified by step
+                window_ptr += step
+
+    return pd.DataFrame(data=new_df, index=range(new_df.shape[0]), columns=new_df[0,:])
+
+
+
+
+
+
 
 if __name__ == '__main__':
     df_db = group_datafiles_byID('../datasets/raw/HT_Sensor_metadata.dat', '../datasets/raw/HT_Sensor_dataset.dat')
