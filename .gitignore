@@ -3,3 +3,4 @@
 __pycache__/
 *.dat
 my_tests.ipynb
+/datasets/*/*.pkl

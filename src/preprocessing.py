@@ -131,30 +131,42 @@ def remove_excess_bg(df_db, delta=0.5):
 
 
 def _build_headers():
-    return ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'Temp.', 'Humidity', 'class',
-            'R1_mean', 'R1_std', 'R2_mean', 'R2_std', 'R3_mean', 'R3_std', 'R4_mean', 'R4_std',
-            'R5_mean', 'R5_std', 'R6_mean', 'R6_std', 'R7_mean', 'R7_std', 'R8_mean', 'R8_std',
-            'Temp._mean', 'Temp._std', 'Humidity_mean', 'Humidity_std']
+    return ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'Temp.', 'Humidity', 'class', 'id', 't0', 'dt',
+            't0_delay', 'dt_delay', 'R1_mean', 'R2_mean', 'R3_mean', 'R4_mean', 'R5_mean', 'R6_mean', 'R7_mean',
+            'R8_mean', 'Temp._mean', 'Humidity_mean', 'R1_std', 'R2_std', 'R3_std', 'R4_std', 'R5_std', 'R6_std',
+            'R7_std', 'R8_std', 'Temp._std', 'Humidity_std']
 
 
-def _init_stats_dict():
-    return {'R1': [], 'R2': [], 'R3': [], 'R4': [], 'R5': [], 'R6': [],
-            'R7': [], 'R8': [], 'Temp.': [], 'Humidity': []}
-
-
-
-def window_df(df, window_size=120, step=1):
+def window_df(df, window_size=120):
+    '''
+        INPUT:
+            df: pandas dataframe
+            window_size: positive integer. For safety, it is considered to be smaller than 5000
+        
+        OUTPUT:
+            pandas dataframe (of size [df.shape[0] - (window_size*len(all_ids))]x[len(full_headers)] )
+        
+        DESCRIPTION:
+            It calculates moving average for all provided sensors for given dataframe. It also computes
+            standard deviation in the specified window.
+    '''
     if window_size <= 0:
         raise ValueError('Introduced window size is too small: '+str(window_size))
     if window_size > 5000:
         raise ValueError('Introduced window size is too large: '+str(window_size))
 
-    features = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'Temp.', 'Humidity', 'class']
-    headers = _build_headers()
-    new_df = np.asarray(headers)
+    main_sensors = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'Temp.', 'Humidity']
+    main_head = main_sensors + ['class', 'id', 't0', 'dt', 't0_delay', 'dt_delay']
+    full_headers = _build_headers()
+    
+    all_ids = list(set(df['id']))
+    
+    final_df_length = df.shape[0] - (window_size*len(all_ids))
+    new_df = np.zeros((final_df_length, len(full_headers)), dtype=object) # + 1 dew to headers
+    
+    main_idx = 0
 
-    total_ids = max(list(set(df['id'])))+1 # Take into account 0 ID
-    for id in range(total_ids):
+    for id in all_ids:
         # for the project, ID=95 is invalid
         if id != 95:
             # selecting sub-dataframe with corresponding ID
@@ -163,36 +175,21 @@ def window_df(df, window_size=120, step=1):
             window_ptr = 0
 
             while window_ptr+window_size < dfid.shape[0]:
-                # init means and std devs dict
-                means_dict = _init_stats_dict()
-                std_dict = _init_stats_dict()
-
-                # Looping throw window
-                for sample_ptr in range(window_size):
-                    current_sample = window_ptr+sample_ptr
-
-                    for sensor in means_dict:
-                        # selecting value
-                        val = dfid[sensor].iloc[current_sample]
-                        # new value to mean dict (for each sensor)
-                        means_dict[sensor].append(val)
-                        # new value to std dev dict (for each sensor)
-                        std_dict[sensor].append(val)
-                
+                # calculating means and std devs
+                vals = dfid[main_sensors].iloc[window_ptr : window_ptr+window_size]
+                means = vals.mean()
+                stds = vals.std()
                 # selecting current sample sensor values
-                new_data = dfid[features].iloc[window_ptr+window_size].to_numpy()
-                # adding statistics values
-                for sensor in means_dict:
-                    np.append(new_data, np.mean(means_dict[sensor]))
-                    np.append(new_data, np.std(std_dict[sensor]))
-                
+                new_data = dfid[main_head].iloc[window_ptr+window_size].to_numpy()
+                # joining current sample data + window mean + window std dev
+                new_data = np.hstack((new_data, means, stds))
                 # appending new data to numpy matrix
-                new_df = np.vstack((new_df, new_data))
+                new_df[main_idx] = new_data
+                # window moved
+                window_ptr += 1
+                main_idx += 1
 
-                # window moved by the value specified by step
-                window_ptr += step
-
-    return pd.DataFrame(data=new_df, index=range(new_df.shape[0]), columns=new_df[0,:])
+    return pd.DataFrame(data=new_df, index=range(new_df.shape[0]), columns=full_headers)
 
 
 
