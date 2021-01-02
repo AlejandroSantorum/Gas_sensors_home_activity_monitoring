@@ -44,7 +44,7 @@ def metric_report(y_true, y_pred, plot_conf_mtx=False, clf=None, X=None):
             plot_conf_mtx: Boolean. If set to True, clf and X params are required and it prints
                            confusion matrix. Default: False
             clf: estimator used to predict y_pred values. It's required to plot conf matrix
-            X: test inoput values used to predict y_pred using clf. It's required to plot conf matrix
+            X: test input values used to predict y_pred using clf. It's required to plot conf matrix
 
         OUTPUT:
             None
@@ -82,6 +82,19 @@ def metric_report(y_true, y_pred, plot_conf_mtx=False, clf=None, X=None):
             plot_confusion_matrix(clf, X, y_true)
     print('==============================================')
 
+
+
+
+def get_df_from_ID_list(main_df, id_list):
+    # Selecting indixes
+    bool_list = []
+    for id in main_df.id:
+        if id in id_list:
+            bool_list.append(True)
+        else:
+            bool_list.append(False)
+    
+    return main_df[bool_list]
 
 
 

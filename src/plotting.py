@@ -57,7 +57,7 @@ def _plot_series(features_names, id, dataframe, axes, ox, oy, stim_start, stim_e
     for i in range(1, len(features_names)):
         ylabel_str += ' and '+features_names[i]
     
-    xlabel_str = 'Time'
+    xlabel_str = 'Time (h.)'
     axes[ox,oy].set_title(ylabel_str + ' VS ' + xlabel_str)
     axes[ox,oy].set_xlabel(xlabel_str)
     axes[ox,oy].set_ylabel(ylabel_str)
@@ -66,7 +66,7 @@ def _plot_series(features_names, id, dataframe, axes, ox, oy, stim_start, stim_e
 
 
 
-def plot_allSeries_byID(id, dataframe, wrong_bool=None):
+def plot_allSeries_byID(id, dataframe, wrong_bool=None, probs_mtx=None):
     '''
         INPUT:
             id: serie ID
@@ -81,7 +81,10 @@ def plot_allSeries_byID(id, dataframe, wrong_bool=None):
         DESCRIPTION: It plots all series (all sensors, humidity and temp.) with given ID.
     '''
     # nrows values is set according to the project
-    nrows = 3
+    if probs_mtx is not None:
+        nrows = 4
+    else:
+        nrows = 3
 
     fig, axes = plt.subplots(nrows=nrows, ncols=2)
     fig.set_figheight(10)
@@ -93,13 +96,29 @@ def plot_allSeries_byID(id, dataframe, wrong_bool=None):
     if 't0_delay' in dataframe and 'dt_delay' in dataframe:
         stim_start += dataframe['t0_delay'][dataframe.id==id].values[0]
         stim_end += dataframe['dt_delay'][dataframe.id==id].values[0]
-
+    
     _plot_series(['Humidity'], id, dataframe, axes, 0, 0, stim_start, stim_end, wrong_bool)
     _plot_series(['Temp.'], id, dataframe, axes, 0, 1, stim_start, stim_end, wrong_bool)
     _plot_series(['R1', 'R2'], id, dataframe, axes, 1, 0, stim_start, stim_end, wrong_bool)
     _plot_series(['R3', 'R4'], id, dataframe, axes, 1, 1, stim_start, stim_end, wrong_bool)
     _plot_series(['R5', 'R6'], id, dataframe, axes, 2, 0, stim_start, stim_end, wrong_bool)
     _plot_series(['R7', 'R8'], id, dataframe, axes, 2, 1, stim_start, stim_end, wrong_bool)
+
+    if probs_mtx is not None:
+        axes[3,0].plot(dataframe.time[dataframe.id==id], probs_mtx[:,0], linewidth = '2.0', label='bg prob')
+        axes[3,0].plot(dataframe.time[dataframe.id==id], probs_mtx[:,1], linewidth = '2.0', label='banana prob')
+        axes[3,0].plot(dataframe.time[dataframe.id==id], probs_mtx[:,2], linewidth = '2.0', label='wine prob')
+        axes[3,1].plot(dataframe.time[dataframe.id==id], probs_mtx[:,0], linewidth = '2.0', label='bg prob')
+        axes[3,1].plot(dataframe.time[dataframe.id==id], probs_mtx[:,1], linewidth = '2.0', label='banana prob')
+        axes[3,1].plot(dataframe.time[dataframe.id==id], probs_mtx[:,2], linewidth = '2.0', label='wine prob')
+        axes[3,0].set_title('Predicted classes probabilities')
+        axes[3,0].set_xlabel('Time (h.)')
+        axes[3,0].set_ylabel('Probability')
+        axes[3,0].legend(loc='upper left')
+        axes[3,1].set_title('Predicted classes probabilities')
+        axes[3,1].set_xlabel('Time (h.)')
+        axes[3,1].set_ylabel('Probability')
+        axes[3,1].legend(loc='upper left')
 
     stims = sorted(list(set(dataframe['class'][dataframe['id'] == id])))
     stim = stims[-1]
@@ -108,7 +127,41 @@ def plot_allSeries_byID(id, dataframe, wrong_bool=None):
 
 
 
-def plot_misclassified_byID(df_test, id, y_true, y_pred):
+
+def _validate_id_test(df_test, id):
+    unique_ids = list(set(df_test.id))
+
+    # Checking introduced ID is in test set
+    if id not in unique_ids:
+        raise ValueError('series ID not in test set. Check introduced ID')
+
+
+def _get_nsamples_before_id(df_test, id):
+    unique_ids = list(set(df_test.id))
+
+    nsamples = 0
+    idx = 0
+    while unique_ids[idx] != id:
+        nsamples += len(df_test[df_test['id']==unique_ids[idx]])
+        idx +=1
+    
+    return nsamples
+
+
+
+
+def _truncate_probs_mtx_by_ID(df_test, id, probs_mtx, nsamples=None):
+    if nsamples is None:
+        nsamples = _get_nsamples_before_id(df_test, id)
+
+    df_aux = df_test[df_test['id']==id]
+
+    return probs_mtx[nsamples:nsamples+len(df_aux)]
+
+
+
+
+def plot_misclassified_byID(df_test, id, y_true, y_pred, probs_mtx=None):
     '''
         INPUT:
             df_test: pandas dataframe. It is considered to be test dataframe,
@@ -125,24 +178,32 @@ def plot_misclassified_byID(df_test, id, y_true, y_pred):
             Given a serie ID on test set, it calculates the samples misclassified
             and plots the whole series, remarking misclassified examples.
     '''
-    unique_ids = list(set(df_test.id))
-
-    # Checking introduced ID is in test set
-    if id not in unique_ids:
-        raise ValueError('series ID not in test set. Check introduced ID')
+    # checking ID is in test set
+    _validate_id_test(df_test, id)
 
     # Selecting samples by ID
     df_aux = df_test[df_test.id==id]
 
     # Selecting misclassified samples (by hand, we have no ID info at y_pred & y_true)
-    nsamples = 0
-    idx = 0
-    while unique_ids[idx] != id:
-        nsamples += len(df_test[df_test['id']==unique_ids[idx]])
-        idx +=1
+    nsamples = _get_nsamples_before_id(df_test, id)
 
     wrong_bool = (y_pred != y_true)
     wrong_bool = wrong_bool[nsamples:nsamples+len(df_aux)]
 
-    plot_allSeries_byID(id, df_test, wrong_bool=wrong_bool)
+    if probs_mtx is not None:
+        probs_mtx = _truncate_probs_mtx_by_ID(df_test, id, probs_mtx)
+
+    plot_allSeries_byID(id, df_test, wrong_bool=wrong_bool, probs_mtx=probs_mtx)
+
+
+
+
+def plot_probs_byID(df_test, id, probs_mtx):
+    # checking ID is in test set
+    _validate_id_test(df_test, id)
+
+    probs_mtx = _truncate_probs_mtx_by_ID(df_test, id, probs_mtx)
+
+    plot_allSeries_byID(id, df_test, probs_mtx=probs_mtx)
+
 
