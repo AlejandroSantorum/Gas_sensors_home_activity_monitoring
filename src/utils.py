@@ -98,6 +98,16 @@ def get_df_from_ID_list(main_df, id_list):
 
 
 
+def get_df_excluding_ID_list(main_df, id_list):
+    df = main_df[main_df['id']!=id_list[0]]
+
+    if len(id_list) > 1:
+        for id in id_list[1:]:
+            df = df[df['id'] != id]
+
+    return df
+
+
 
 
     
