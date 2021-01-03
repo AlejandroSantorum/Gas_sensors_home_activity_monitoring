@@ -132,7 +132,7 @@ def remove_excess_bg(df_db, delta=0.5):
 
 
 def _build_headers():
-    return ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'Temp.', 'Humidity', 'class', 'id', 't0', 'dt',
+    return ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'Temp.', 'Humidity', 'class', 'id', 'time', 't0', 'dt',
             't0_delay', 'dt_delay', 'R1_mean', 'R2_mean', 'R3_mean', 'R4_mean', 'R5_mean', 'R6_mean', 'R7_mean',
             'R8_mean', 'Temp._mean', 'Humidity_mean', 'R1_std', 'R2_std', 'R3_std', 'R4_std', 'R5_std', 'R6_std',
             'R7_std', 'R8_std', 'Temp._std', 'Humidity_std']
@@ -157,7 +157,7 @@ def window_df(df, window_size=120):
         raise ValueError('Introduced window size is too large: '+str(window_size))
 
     main_sensors = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'Temp.', 'Humidity']
-    main_head = main_sensors + ['class', 'id', 't0', 'dt', 't0_delay', 'dt_delay']
+    main_head = main_sensors + ['class', 'id', 'time', 't0', 'dt', 't0_delay', 'dt_delay']
     full_headers = _build_headers()
     
     all_ids = list(set(df['id']))
