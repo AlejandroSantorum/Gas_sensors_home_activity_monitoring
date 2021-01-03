@@ -26,8 +26,7 @@ def split_train_test(dataframe, train_perc):
             It separates given pandas dataframe in 4 sub-dataframes:
             X train set, Y train set, X test set, Y test set.
     '''
-    N_TOTAL_IDS = 100
-    df_train, df_test = split_series_byID(N_TOTAL_IDS, train_perc, dataframe)
+    df_train, df_test = split_series_byID(train_perc, dataframe)
     features = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'Temp.', 'Humidity']
     xtrain, ytrain = df_train[features].values, df_train['class'].values
     xtest, ytest = df_test[features].values, df_test['class'].values
