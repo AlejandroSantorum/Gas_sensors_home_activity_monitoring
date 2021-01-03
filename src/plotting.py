@@ -137,15 +137,12 @@ def _validate_id_test(df_test, id):
 
 
 def _get_nsamples_before_id(df_test, id):
-    unique_ids = list(set(df_test.id))
+    i = 0
 
-    nsamples = 0
-    idx = 0
-    while unique_ids[idx] != id:
-        nsamples += len(df_test[df_test['id']==unique_ids[idx]])
-        idx +=1
+    while df_test['id'].iloc[i] != id:
+        i += 1
     
-    return nsamples
+    return i
 
 
 
@@ -187,11 +184,13 @@ def plot_misclassified_byID(df_test, id, y_true, y_pred, probs_mtx=None):
     # Selecting misclassified samples (by hand, we have no ID info at y_pred & y_true)
     nsamples = _get_nsamples_before_id(df_test, id)
 
+    print(nsamples)
+
     wrong_bool = (y_pred != y_true)
     wrong_bool = wrong_bool[nsamples:nsamples+len(df_aux)]
 
     if probs_mtx is not None:
-        probs_mtx = _truncate_probs_mtx_by_ID(df_test, id, probs_mtx)
+        probs_mtx = _truncate_probs_mtx_by_ID(df_test, id, probs_mtx, nsamples=nsamples)
 
     plot_allSeries_byID(id, df_test, wrong_bool=wrong_bool, probs_mtx=probs_mtx)
 
