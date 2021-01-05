@@ -3,6 +3,10 @@ import time
 import pickle
 import pandas as pd
 import numpy as np
+from sklearn.preprocessing import StandardScaler
+
+
+DEFAULT_FEAT = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'Temp.', 'Humidity']
 
 
 
@@ -61,9 +65,9 @@ def reclassify_series_samples(df_db):
 def split_series_byID(train_perc, joint_df):
     '''
         INPUT:
-            n_ids: total number of IDs (in this project: 100)
             train_perc: percentage data of train set
             joint_df: joint pandas dataframe
+            normalize: Boolean. Set to True if dataframes are normalized
 
         OUTPUT:
             df_train: pandas dataframe (train dataframe)
@@ -191,6 +195,23 @@ def window_df(df, window_size=120):
                 main_idx += 1
 
     return pd.DataFrame(data=new_df, index=range(new_df.shape[0]), columns=full_headers)
+
+
+
+
+def norm_features(df, features_to_norm=DEFAULT_FEAT):
+    df[features_to_norm] = (df[features_to_norm] - df[features_to_norm].mean())/df[features_to_norm].std()
+    return df
+
+
+def norm_train_test(df_train, df_test, features_to_norm=DEFAULT_FEAT):
+    scaler = StandardScaler()
+    scaler.fit(df_train[features_to_norm])
+    df_train[features_to_norm] = scaler.transform(df_train[features_to_norm])
+    df_test[features_to_norm] = scaler.transform(df_test[features_to_norm])
+    return df_train, df_test
+
+
 
 
 

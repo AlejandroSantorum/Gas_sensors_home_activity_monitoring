@@ -9,8 +9,9 @@ from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, plot_con
 from preprocessing import split_series_byID
 
 
+DEFAULT_FEAT = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'Temp.', 'Humidity']
 
-def split_train_test(dataframe, train_perc):
+def split_train_test(dataframe, train_perc, features=DEFAULT_FEAT):
     '''
         INPUT:
             dataframe: pandas dataframe
@@ -27,7 +28,6 @@ def split_train_test(dataframe, train_perc):
             X train set, Y train set, X test set, Y test set.
     '''
     df_train, df_test = split_series_byID(train_perc, dataframe)
-    features = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'Temp.', 'Humidity']
     xtrain, ytrain = df_train[features].values, df_train['class'].values
     xtest, ytest = df_test[features].values, df_test['class'].values
     return xtrain, ytrain, xtest, ytest

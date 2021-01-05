@@ -198,5 +198,3 @@ def plot_probs_byID(df_test, id, probs_mtx):
     probs_mtx = _truncate_probs_mtx_by_ID(df_test, id, probs_mtx)
 
     plot_allSeries_byID(id, df_test, probs_mtx=probs_mtx)
-
-
