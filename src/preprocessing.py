@@ -4,6 +4,9 @@ import pickle
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
+# Smote libraries
+from imblearn.over_sampling import SMOTE
+from imblearn.under_sampling import RandomUnderSampler
 
 
 DEFAULT_FEAT = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'Temp.', 'Humidity']
@@ -199,17 +202,71 @@ def window_df(df, window_size=120):
 
 
 
-def norm_features(df, features_to_norm=DEFAULT_FEAT):
-    df[features_to_norm] = (df[features_to_norm] - df[features_to_norm].mean())/df[features_to_norm].std()
-    return df
-
-
 def norm_train_test(df_train, df_test, features_to_norm=DEFAULT_FEAT):
+    '''
+        INPUT:
+            df_train: pandas dataframe (training dataframe)
+            df_test: pandas dataframe (test dataframe)
+            features_to_norm: features of the dataframe to be scaled
+        
+        OUTPUT:
+            training pandas dataframe, test pandas dataframe
+        
+        DESCRIPTION:
+            It standardizes features by removing the mean and scaling to unit variance.
+            The mean and variance are calculated only on the training set, but the
+            standarization is done in both sets.
+    '''
     scaler = StandardScaler()
     scaler.fit(df_train[features_to_norm])
     df_train[features_to_norm] = scaler.transform(df_train[features_to_norm])
     df_test[features_to_norm] = scaler.transform(df_test[features_to_norm])
     return df_train, df_test
+
+
+
+def smote_train_set(xtrain, ytrain, oversample_dict, undersample_dict=None):
+    '''
+        INPUT:
+            xtrain: training data (features)
+            ytrain: training output data (classes)
+            oversample_dict: dictionary including name of class to be oversampled (key) and
+                             the number of desired examples of this class (value).
+                             New value must be greater than previous value.
+            undersample_dict: dictionary including name of class to be undersampled (key) and
+                             the number of desired examples of this class (value).
+                             New value must be smaller than the previous value.
+        
+        OUTPUT:
+            xtrain, ytrain with new oversampled/undersampled examples
+        
+        DESCRIPTION:
+            It oversamples the class examples specified and, optionally, it undersamples
+            the class specified.
+        
+        USAGE EXAMPLE (Gas sensor monitoring project):
+            for i in range(nreps):
+                df_train, df_test = split_series_byID(0.8, df_db)
+                xtrain, ytrain = df_train[features].values, df_train['class'].values
+                xtest, ytest = df_test[features].values, df_test['class'].values
+
+                over_dict = {'banana': 170000, 'wine': 170000}
+                under_dict = {'background': 500000}
+                xtrain, ytrain = smote_train_set(xtrain, ytrain, oversample_dict=over_dict, undersample_dict=under_dict)
+
+                clf = MLPClassifier()
+                clf.fit(xtrain, ytrain)
+                sc = clf.score(xtest, ytest)
+    '''
+    oversample = SMOTE(sampling_strategy=oversample_dict)
+    xtrain, ytrain = oversample.fit_resample(xtrain, ytrain)
+
+    if undersample_dict:
+        undersample = RandomUnderSampler(sampling_strategy=undersample_dict)
+        xtrain, ytrain = undersample.fit_resample(xtrain, ytrain) 
+    
+    return xtrain, ytrain
+
 
 
 
