@@ -1,7 +1,7 @@
 # Gas_sensors_home_activity_monitoring
 Fundamentals of Machine Learning project (2020-2021)
 
-Current project authors:
+Current project authors:<br>
   · Alejandro Santorum Varela (@AlejandroSantorum) - alejandro.santorum@gmail.com<br>
   · David Cabornero Pascual (@DCabornero) - david.cabornero@estudiante.uam.es<br>
 	· José Manuel Chacón Aguilera (@manechacon) - josem.chacon@estudiante.uam.es<br>
