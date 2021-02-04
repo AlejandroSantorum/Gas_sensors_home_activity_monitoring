@@ -1,3 +1,14 @@
+################################################################################
+#   Authors:
+#       · Alejandro Santorum Varela - alejandro.santorum@gmail.com
+#       · Jose Manuel Chacon Aguilera - josem.chacon@estudiante.uam.es
+#       · David Cabornero Pascual - david.cabornero@estudiante.uam.es
+#       · Mario García Pascual - mario.garciapascual@estudiante.uam.es
+#   File: plotting.py
+#   Date: Feb. 1, 2021
+#   Project: Gas Sensors Home Activity Monitoring
+################################################################################
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -163,6 +174,7 @@ def plot_misclassified_byID(df_test, id, y_true, y_pred, probs_mtx=None):
             id: serie identifier
             y_true: real class values
             y_pred: predicted class values
+            probs_mtx (optional): numpy matrix. Outputed probability matrix for each class.
 
         OUTPUT:
             None
@@ -192,6 +204,23 @@ def plot_misclassified_byID(df_test, id, y_true, y_pred, probs_mtx=None):
 
 
 def plot_probs_byID(df_test, id, probs_mtx):
+    '''
+        INPUT:
+            df_test: pandas dataframe. It is considered to be test dataframe,
+                     but it can be the whole dataframe too, due to the fact
+                     that series are selected by ID.
+            id: serie identifier
+            y_true: real class values
+            y_pred: predicted class values
+            probs_mtx: numpy matrix. Outputed probability matrix for each class.
+
+        OUTPUT:
+            None
+        
+        DESCRIPTION:
+            Given a serie ID on test set, it plots the whole series, including
+            outputed probability for each class by the used model.
+    '''
     # checking ID is in test set
     _validate_id_test(df_test, id)
 

@@ -1,3 +1,14 @@
+################################################################################
+#   Authors:
+#       · Alejandro Santorum Varela - alejandro.santorum@gmail.com
+#       · Jose Manuel Chacon Aguilera - josem.chacon@estudiante.uam.es
+#       · David Cabornero Pascual - david.cabornero@estudiante.uam.es
+#       · Mario García Pascual - mario.garciapascual@estudiante.uam.es
+#   File: utils.py
+#   Date: Feb. 1, 2021
+#   Project: Gas Sensors Home Activity Monitoring
+################################################################################
+
 import math
 import time
 import pickle
